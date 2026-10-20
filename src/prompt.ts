@@ -40,7 +40,7 @@ export async function resolveText(
 
   const validate = opts.optional
     ? undefined
-    : (v: string) => (v?.trim() ? undefined : "This value is required");
+    : (v: string | undefined) => (v?.trim() ? undefined : "This value is required");
 
   const answer = opts.secret
     ? await p.password({ message: opts.message, validate })
@@ -50,7 +50,7 @@ export async function resolveText(
         validate,
       });
 
-  return guard(answer).trim();
+  return (guard(answer) as string).trim();
 }
 
 export async function resolveSelect<T extends string>(
@@ -75,5 +75,5 @@ export async function resolveConfirm(
   if (skip) return true;
   if (!interactive())
     throw new CliError("Pass --yes to run without confirmation.");
-  return guard(await p.confirm({ message }));
+  return guard(await p.confirm({ message })) as boolean;
 }
