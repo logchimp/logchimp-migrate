@@ -1,5 +1,5 @@
-import { requestJson } from "../http";
-import type { Source, SourceBoard, SourcePost } from "../types";
+import { requestJson } from "../utils/http";
+import type { Source, SourceBoard, SourcePost } from "../utils/types";
 
 const BASE = "https://canny.io/api/v1";
 const PAGE_SIZE = 100;

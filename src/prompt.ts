@@ -1,5 +1,5 @@
 import * as p from "@clack/prompts";
-import { CliError } from "./types";
+import { CliError } from "./utils/types";
 
 export const interactive = () =>
   Boolean(process.stdin.isTTY && process.stdout.isTTY);

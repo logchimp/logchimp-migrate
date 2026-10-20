@@ -1,7 +1,7 @@
 import * as p from "@clack/prompts";
-import { LogChimpClient } from "./logchimp";
-import { State } from "./state";
-import type { Source, SourceBoard, SourcePost } from "./types";
+import type { LogChimpClient } from "./logchimp";
+import { State } from "./utils/state";
+import type { Source, SourceBoard, SourcePost } from "./utils/types";
 
 export interface MigrateOptions {
   source: Source;
