@@ -1,5 +1,10 @@
 import { requestJson } from "../utils/http";
-import type { Source, SourceBoard, SourcePost } from "../utils/types";
+import type {
+  Source,
+  SourceBoard,
+  SourcePost,
+  SourceRoadmap,
+} from "../utils/types";
 
 const BASE = "https://canny.io/api/v1";
 const PAGE_SIZE = 100;
@@ -59,6 +64,11 @@ export function createCannySource(apiKey: string): Source {
         if (!hasMore || posts.length === 0) break;
         skip += posts.length;
       }
+    },
+
+    // TODO: work on it
+    async fetchRoadmaps(): Promise<SourceRoadmap[]> {
+      return [];
     },
   };
 }

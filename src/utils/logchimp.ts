@@ -31,6 +31,19 @@ export interface IBoardPrivate extends IBoardDetail {
   view_voters: boolean;
 }
 
+export interface IRoadmap {
+  id: string;
+  name: string;
+  url: string;
+  color: string;
+}
+
+export interface IRoadmapPrivate extends IRoadmap {
+  index: number;
+  display: boolean;
+  created_at: Date;
+}
+
 /**
  * Minimal LogChimp API client (<host>/api/v1, JWT bearer auth).
  */
@@ -90,10 +103,46 @@ export class LogChimpClient {
     title: string;
     contentMarkdown: string;
     boardId?: string;
+    roadmapId?: string;
   }): Promise<IPost> {
     const res = await this.call<{ post?: IPost }>("POST", "/posts", input);
     if (!res.post?.postId)
       throw new CliError(`Could not create post "${input.title}".`);
     return res.post;
+  }
+
+  async listRoadmaps(): Promise<
+    { roadmapId: string; name: string; url: string }[]
+  > {
+    const res = await this.call<{
+      roadmaps?: { roadmapId: string; name: string; url: string }[];
+    }>("GET", "/roadmaps");
+    return res.roadmaps ?? [];
+  }
+
+  async createRoadmap(input: { name: string }): Promise<IRoadmapPrivate> {
+    const res = await this.call<{
+      roadmap: IRoadmapPrivate;
+    }>("POST", "/roadmaps", input);
+    if (!res.roadmap?.id)
+      throw new CliError(`Could not create roadmap "${input.name}".`);
+    return res.roadmap;
+  }
+
+  async updateRoadmap(input: {
+    id: string;
+    name: string;
+    url: string;
+    color: string;
+    display: boolean;
+  }) {
+    const res = await this.call<{ roadmap?: IRoadmapPrivate }>(
+      "PATCH",
+      "/roadmaps",
+      input,
+    );
+    if (!res.roadmap?.id)
+      throw new CliError(`Could not update roadmap "${input.name}".`);
+    return res.roadmap;
   }
 }

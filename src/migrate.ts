@@ -1,7 +1,12 @@
 import * as p from "@clack/prompts";
 import type { LogChimpClient } from "./utils/logchimp";
 import { State } from "./utils/state";
-import type { Source, SourceBoard, SourcePost } from "./utils/types";
+import type {
+  Source,
+  SourceBoard,
+  SourcePost,
+  SourceRoadmap,
+} from "./utils/types";
 
 export interface MigrateOptions {
   source: Source;
@@ -29,8 +34,12 @@ export async function migrate(opts: MigrateOptions) {
   const spin = p.spinner();
 
   const boards = await collectBoards(source, spin);
+  const roadmaps = await collectRoadmaps(source, spin);
   const postsByBoard = await collectPosts(source, boards, spin);
-  const total = Array.from(postsByBoard.values()).reduce((sum, ps) => sum + ps.length, 0);
+  const total = Array.from(postsByBoard.values()).reduce(
+    (sum, ps) => sum + ps.length,
+    0,
+  );
 
   if (total === 0) {
     p.outro("Nothing to migrate.");
@@ -49,7 +58,7 @@ export async function migrate(opts: MigrateOptions) {
   }
 
   const ok = await opts.confirm(
-    `Import ${total} post(s) across ${boards.length} board(s) into LogChimp?`,
+    `Import ${total} post(s) across ${boards.length} board(s), ${roadmaps.length} roadmap(s) into LogChimp?`,
   );
   if (!ok) {
     p.cancel("Migration cancelled.");
@@ -59,6 +68,11 @@ export async function migrate(opts: MigrateOptions) {
   const state = await State.load();
 
   const boardIds = await migrateBoards(logchimp, boards, spin);
+  const {
+    imported: roadmapIds,
+    skipped: roadmapSkipped,
+    failures: roadmapFailures,
+  } = await migrateRoadmaps(logchimp, roadmaps, spin);
 
   const { imported, skipped, failures } = await migratePosts(
     logchimp,
@@ -67,6 +81,7 @@ export async function migrate(opts: MigrateOptions) {
     source.label,
     postsByBoard,
     boardIds,
+    roadmapIds,
     total,
     spin,
   );
@@ -84,11 +99,28 @@ export async function migrate(opts: MigrateOptions) {
   p.outro("Migration finished.");
 }
 
-async function collectBoards(source: Source, spin: ReturnType<typeof p.spinner>) {
+async function collectBoards(
+  source: Source,
+  spin: ReturnType<typeof p.spinner>,
+) {
   spin.start(`Reading boards from ${source.label}`);
   const boards = await source.fetchBoards();
   spin.stop(`Found ${boards.length} board(s) in ${source.label}`);
   return boards;
+}
+
+async function collectRoadmaps(
+  source: Source,
+  spin: ReturnType<typeof p.spinner>,
+) {
+  if (!source?.fetchRoadmaps) {
+    return [];
+  }
+
+  spin.start(`Reading roadmaps from ${source.label}`);
+  const roadmaps = await source.fetchRoadmaps();
+  spin.stop(`Found ${roadmaps.length} roadmap(s) in ${source.label}`);
+  return roadmaps;
 }
 
 async function collectPosts(
@@ -134,6 +166,69 @@ async function migrateBoards(
   return boardIds;
 }
 
+async function migrateRoadmaps(
+  logchimp: LogChimpClient,
+  roadmaps: SourceRoadmap[],
+  spin: ReturnType<typeof p.spinner>,
+) {
+  spin.start("Mapping roadmaps in LogChimp");
+
+  let skipped = 0;
+  const failures: { id: string; title: string; error: string }[] = [];
+
+  const existing = new Map(
+    (await logchimp.listRoadmaps()).map((r) => [
+      r.name.toLowerCase(),
+      r.roadmapId,
+    ]),
+  );
+
+  const roadmapIds = new Map<string, string>();
+  for (const roadmap of roadmaps) {
+    let id = existing.get(roadmap.name.toLowerCase());
+    if (id) {
+      roadmapIds.set(roadmap.id, id);
+      skipped++;
+    } else {
+      try {
+        const localRoadmap = await logchimp.createRoadmap({
+          name: roadmap.name,
+        });
+        id = localRoadmap.id;
+
+        let color = roadmap.color;
+        if (color.startsWith("#")) {
+          color = color.slice(1);
+        }
+
+        await logchimp.updateRoadmap({
+          id,
+          name: roadmap.name,
+          url: localRoadmap.url,
+          color,
+          display: roadmap.display,
+        });
+
+        roadmapIds.set(roadmap.id, id);
+      } catch (err) {
+        failures.push({
+          id: roadmap.id,
+          title: roadmap.name,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+  }
+
+  spin.stop(`Mapped ${roadmapIds.size} roadmap(s)`);
+
+  return {
+    imported: roadmapIds,
+    skipped,
+    failures,
+  };
+}
+
 async function migratePosts(
   logchimp: LogChimpClient,
   state: State,
@@ -141,6 +236,7 @@ async function migratePosts(
   sourceLabel: string,
   postsByBoard: Map<SourceBoard, SourcePost[]>,
   boardIds: Map<string, string>,
+  roadmapIds: Map<string, string>,
   total: number,
   spin: ReturnType<typeof p.spinner>,
 ) {
@@ -161,7 +257,10 @@ async function migratePosts(
         await logchimp.createPost({
           title: post.title,
           contentMarkdown: buildMarkdown(post, sourceLabel),
-          boardId: boardIds.get(post.boardId),
+          boardId: post.boardId ? boardIds.get(post.boardId) : undefined,
+          roadmapId: post.status?.id
+            ? roadmapIds.get(post.status.id)
+            : undefined,
         });
         await state.add(key);
         imported++;
