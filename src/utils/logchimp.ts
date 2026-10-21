@@ -1,10 +1,38 @@
 import { normalizeBaseUrl, requestJson } from "./http";
 import { CliError } from "./types";
 
+export interface IPost {
+  postId: string;
+  title: string;
+  slug: string;
+  slugId: string;
+  contentMarkdown: string | null;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  boardId: string;
+  roadmap_id: string;
+}
+
+export interface IBoard {
+  boardId: string;
+  name: string;
+  url: string;
+  color: string;
+  createdAt: Date;
+}
+
+export interface IBoardDetail extends IBoard {
+  post_count: string;
+}
+
+export interface IBoardPrivate extends IBoardDetail {
+  display: boolean;
+  view_voters: boolean;
+}
+
 /**
  * Minimal LogChimp API client (<host>/api/v1, JWT bearer auth).
- * Response shapes are read defensively; adjust here if your LogChimp
- * version differs (see https://docs.logchimp.codecarrot.net).
  */
 export class LogChimpClient {
   private token = "";
@@ -42,16 +70,16 @@ export class LogChimpClient {
     this.token = token;
   }
 
-  async listBoards(): Promise<{ boardId: string; name: string }[]> {
+  async listBoards(): Promise<IBoardPrivate[]> {
     const res = await this.call<{
-      boards?: { boardId: string; name: string }[];
+      boards?: IBoardPrivate[];
     }>("GET", "/boards");
     return res.boards ?? [];
   }
 
-  async createBoard(name: string): Promise<{ boardId: string; name: string }> {
+  async createBoard(name: string): Promise<IBoardPrivate> {
     const res = await this.call<{
-      board?: { boardId: string; name: string };
+      board?: IBoardPrivate;
     }>("POST", "/boards", { name });
     if (!res.board?.boardId)
       throw new CliError(`Could not create board "${name}".`);
@@ -61,13 +89,9 @@ export class LogChimpClient {
   async createPost(input: {
     title: string;
     contentMarkdown: string;
-    boardId: string;
-  }): Promise<{ postId: string }> {
-    const res = await this.call<{ post?: { postId: string } }>(
-      "POST",
-      "/posts",
-      input,
-    );
+    boardId?: string;
+  }): Promise<IPost> {
+    const res = await this.call<{ post?: IPost }>("POST", "/posts", input);
     if (!res.post?.postId)
       throw new CliError(`Could not create post "${input.title}".`);
     return res.post;

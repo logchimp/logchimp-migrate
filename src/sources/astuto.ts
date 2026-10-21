@@ -1,29 +1,25 @@
 import { requestJson } from "../utils/http";
 import type { Source, SourceBoard, SourcePost } from "../utils/types";
 
-/**
- * Astuto adapter.
- *
- * NOTE: endpoint paths live in one place so they are easy to adjust against
- * your Astuto version's API docs (https://docs.astuto.io).
- */
-const PATHS = {
-  boards: "/boards",
-  posts: "/posts",
-};
 const MAX_PAGES = 1000; // safety net against endlessly repeating pages
 
 interface AstutoBoard {
-  id: number | string;
+  id: number;
   name: string;
+  description: string;
+  slug: string;
+  created_at: string;
+  updated_at: string;
 }
+
 interface AstutoPost {
   id: number | string;
   title: string;
   description?: string | null;
-  board_id?: number | string;
+  slug: string;
   created_at?: string;
   user?: { full_name?: string } | null;
+  board?: AstutoBoard | null;
   post_status?: { name?: string } | null;
 }
 
@@ -48,7 +44,7 @@ export function createAstutoSource(baseUrl: string, apiKey?: string): Source {
 
     async fetchBoards(): Promise<SourceBoard[]> {
       const data = await get<AstutoBoard[] | { boards: AstutoBoard[] }>(
-        PATHS.boards,
+        "/boards",
       );
       const boards = Array.isArray(data) ? data : data.boards;
       return boards.map((b) => ({ id: String(b.id), name: b.name }));
@@ -60,7 +56,7 @@ export function createAstutoSource(baseUrl: string, apiKey?: string): Source {
       for (let page = 1; page <= MAX_PAGES; page++) {
         const data = await get<
           AstutoPost[] | { posts: AstutoPost[]; total_pages?: number }
-        >(PATHS.posts, { board_id: board.id, page });
+        >("/posts", { board_id: board.id, page });
 
         const posts = Array.isArray(data) ? data : data.posts;
         const totalPages = Array.isArray(data) ? undefined : data.total_pages;
