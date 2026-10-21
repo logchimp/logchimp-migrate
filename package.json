@@ -4,13 +4,29 @@
   "description": "Migrate feedback data from other providers into LogChimp",
   "type": "module",
   "bin": {
-    "logchimp-migrate": "./src/index.ts"
+    "logchimp-migrate": "./bin/logchimp-migrate"
   },
   "scripts": {
     "start": "bun run src/index.ts",
     "typecheck": "tsc --noEmit",
-    "build": "bun build --compile src/index.ts --outfile dist/logchimp-migrate"
+    "build": "bun build --compile src/index.ts --outfile bin/logchimp-migrate",
+    "build:all": "bun run scripts/build-all.ts",
+    "prepublishOnly": "node scripts/copy-binary.mjs"
   },
+  "files": [
+    "bin/",
+    "README.md",
+    "LICENSE"
+  ],
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
   "dependencies": {
     "@clack/prompts": "^1.8.1"
   },
