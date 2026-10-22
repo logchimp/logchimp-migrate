@@ -128,13 +128,11 @@ export class LogChimpClient {
     return res.post;
   }
 
-  async listRoadmaps(): Promise<
-    { roadmapId: string; name: string; url: string }[]
-  > {
+  async listRoadmaps(): Promise<IRoadmapPrivate[]> {
     const res = await this.call<{
-      roadmaps?: { roadmapId: string; name: string; url: string }[];
+      results: IRoadmapPrivate[];
     }>("GET", "/roadmaps");
-    return res.roadmaps ?? [];
+    return res.results ?? [];
   }
 
   async createRoadmap(input: { name: string }): Promise<IRoadmapPrivate> {

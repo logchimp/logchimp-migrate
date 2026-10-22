@@ -178,10 +178,7 @@ async function migrateRoadmaps(
   const failures: { id: string; title: string; error: string }[] = [];
 
   const existing = new Map(
-    (await logchimp.listRoadmaps()).map((r) => [
-      r.name.toLowerCase(),
-      r.roadmapId,
-    ]),
+    (await logchimp.listRoadmaps()).map((r) => [r.name.toLowerCase(), r.id]),
   );
 
   const roadmapIds = new Map<string, string>();
