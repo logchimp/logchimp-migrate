@@ -111,6 +111,23 @@ export class LogChimpClient {
     return res.post;
   }
 
+  async updatePost(input: {
+    id: string;
+    title: string;
+    contentMarkdown: string | null;
+    slugId: string;
+    boardId?: string | null;
+    roadmapId?: string | null;
+    roadmap?: {
+      notifyVoters: boolean;
+    };
+  }): Promise<IPost> {
+    const res = await this.call<{ post?: IPost }>("PATCH", "/posts", input);
+    if (!res.post?.postId)
+      throw new CliError(`Could not update post "${input.title}".`);
+    return res.post;
+  }
+
   async listRoadmaps(): Promise<
     { roadmapId: string; name: string; url: string }[]
   > {

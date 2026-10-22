@@ -255,9 +255,16 @@ async function migratePosts(
         continue;
       }
       try {
-        await logchimp.createPost({
+        const localPost = await logchimp.createPost({
           title: post.title,
           contentMarkdown: buildMarkdown(post, sourceLabel),
+        });
+
+        await logchimp.updatePost({
+          id: localPost.postId,
+          title: localPost.title,
+          slugId: localPost.slugId,
+          contentMarkdown: localPost.contentMarkdown,
           boardId: post.boardId ? boardIds.get(post.boardId) : undefined,
           roadmapId: post.status?.id
             ? roadmapIds.get(post.status.id)
