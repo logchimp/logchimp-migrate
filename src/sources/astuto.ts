@@ -1,5 +1,10 @@
 import { requestJson } from "../utils/http";
-import type { Source, SourceBoard, SourcePost } from "../utils/types";
+import type {
+  Source,
+  SourceBoard,
+  SourcePost,
+  SourceRoadmap,
+} from "../utils/types";
 
 const MAX_PAGES = 1000; // safety net against endlessly repeating pages
 
@@ -13,14 +18,22 @@ interface AstutoBoard {
 }
 
 interface AstutoPost {
-  id: number | string;
+  id: number;
   title: string;
   description?: string | null;
   slug: string;
   created_at?: string;
   user?: { full_name?: string } | null;
   board?: AstutoBoard | null;
-  post_status?: { name?: string } | null;
+  post_status?: AstutoRoadmap | null;
+}
+
+interface AstutoRoadmap {
+  id: number;
+  name: string;
+  color: string;
+  order: number;
+  show_in_roadmap: boolean;
 }
 
 export function createAstutoSource(baseUrl: string, apiKey?: string): Source {
@@ -34,7 +47,7 @@ export function createAstutoSource(baseUrl: string, apiKey?: string): Source {
     const qs = new URLSearchParams(
       Object.entries(params).map(([k, v]) => [k, String(v)]),
     ).toString();
-    return requestJson<T>(`${baseUrl}${path}${qs ? `?${qs}` : ""}`, {
+    return requestJson<T>(`${baseUrl}/api/v1${path}${qs ? `?${qs}` : ""}`, {
       headers,
     });
   };
@@ -48,6 +61,20 @@ export function createAstutoSource(baseUrl: string, apiKey?: string): Source {
       );
       const boards = Array.isArray(data) ? data : data.boards;
       return boards.map((b) => ({ id: String(b.id), name: b.name }));
+    },
+
+    async fetchRoadmaps(): Promise<SourceRoadmap[]> {
+      const data = await get<AstutoRoadmap[] | { roadmaps: AstutoRoadmap[] }>(
+        "/post_statuses",
+      );
+      const roadmaps = Array.isArray(data) ? data : data.roadmaps;
+      return roadmaps.map((r) => ({
+        id: String(r.id),
+        name: r.name,
+        color: r.color,
+        order: r.order,
+        display: r.show_in_roadmap,
+      }));
     },
 
     async *fetchPosts(board: SourceBoard): AsyncGenerator<SourcePost> {
@@ -73,7 +100,14 @@ export function createAstutoSource(baseUrl: string, apiKey?: string): Source {
             body: p.description ?? "",
             createdAt: p.created_at,
             authorName: p.user?.full_name,
-            status: p.post_status?.name,
+            ...(p.post_status
+              ? {
+                  status: {
+                    id: String(p.post_status?.id),
+                    name: p.post_status?.name,
+                  },
+                }
+              : {}),
           };
         }
 

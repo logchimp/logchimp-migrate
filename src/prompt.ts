@@ -40,7 +40,8 @@ export async function resolveText(
 
   const validate = opts.optional
     ? undefined
-    : (v: string | undefined) => (v?.trim() ? undefined : "This value is required");
+    : (v: string | undefined) =>
+        v?.trim() ? undefined : "This value is required";
 
   const answer = opts.secret
     ? await p.password({ message: opts.message, validate })
