@@ -100,10 +100,14 @@ export function createAstutoSource(baseUrl: string, apiKey?: string): Source {
             body: p.description ?? "",
             createdAt: p.created_at,
             authorName: p.user?.full_name,
-            status: {
-              id: String(p.post_status?.id),
-              name: p.post_status?.name,
-            },
+            ...(p.post_status
+              ? {
+                  status: {
+                    id: String(p.post_status?.id),
+                    name: p.post_status?.name,
+                  },
+                }
+              : {}),
           };
         }
 
