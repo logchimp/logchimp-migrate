@@ -7,6 +7,7 @@ import type {
   SourcePost,
   SourceRoadmap,
 } from "./utils/types";
+import { toSlug } from "./utils/func";
 
 export interface MigrateOptions {
   source: Source;
@@ -204,7 +205,7 @@ async function migrateRoadmaps(
         await logchimp.updateRoadmap({
           id,
           name: roadmap.name,
-          url: localRoadmap.url,
+          url: toSlug(roadmap.name),
           color,
           display: roadmap.display,
         });
