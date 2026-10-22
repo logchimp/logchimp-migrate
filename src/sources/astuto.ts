@@ -47,7 +47,7 @@ export function createAstutoSource(baseUrl: string, apiKey?: string): Source {
     const qs = new URLSearchParams(
       Object.entries(params).map(([k, v]) => [k, String(v)]),
     ).toString();
-    return requestJson<T>(`${baseUrl}${path}${qs ? `?${qs}` : ""}`, {
+    return requestJson<T>(`${baseUrl}/api/v1${path}${qs ? `?${qs}` : ""}`, {
       headers,
     });
   };
