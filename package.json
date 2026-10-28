@@ -1,6 +1,6 @@
 {
   "name": "logchimp-migrate",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Migrate feedback data from other providers into LogChimp",
   "type": "module",
   "bin": {
