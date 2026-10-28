@@ -24,7 +24,7 @@ for (const { os, arch, suffix } of platforms) {
     "build",
     "--compile",
     "--target",
-    target,
+    `bun-${target}`,
     "src/index.ts",
     "--outfile",
     outfile,
