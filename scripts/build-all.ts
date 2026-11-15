@@ -16,9 +16,9 @@ await Bun.$`mkdir -p ${binDir} ${distDir}`;
 for (const { os, arch, suffix } of platforms) {
   const target = `${os}-${arch}`;
   const outfile = `${distDir}/logchimp-migrate-${target}${suffix}`;
-  
+
   console.log(`Building for ${target}...`);
-  
+
   const result = Bun.spawn([
     "bun",
     "build",
