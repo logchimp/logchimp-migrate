@@ -1,4 +1,5 @@
 import * as p from "@clack/prompts";
+import { toSlug } from "./utils/func";
 import type { LogChimpClient } from "./utils/logchimp";
 import { State } from "./utils/state";
 import type {
@@ -7,7 +8,6 @@ import type {
   SourcePost,
   SourceRoadmap,
 } from "./utils/types";
-import { toSlug } from "./utils/func";
 
 export interface MigrateOptions {
   source: Source;
@@ -69,13 +69,13 @@ export async function migrate(opts: MigrateOptions) {
   const state = await State.load();
 
   const boardIds = await migrateBoards(logchimp, boards, spin);
-  const {
-    imported: roadmapIds,
-    skipped: roadmapSkipped,
-    failures: roadmapFailures,
-  } = await migrateRoadmaps(logchimp, roadmaps, spin);
+  const { imported: roadmapIds } = await migrateRoadmaps(
+    logchimp,
+    roadmaps,
+    spin,
+  );
 
-  const { imported, skipped, failures } = await migratePosts(
+  const { failures } = await migratePosts(
     logchimp,
     state,
     sourceKey,

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { copyFileSync, existsSync, mkdirSync } from "fs";
-import { join } from "path";
+import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
 
 const platform = process.platform;
 const arch = process.arch;

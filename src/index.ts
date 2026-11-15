@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
 import { parseArgs } from "node:util";
 import * as p from "@clack/prompts";
-import { LogChimpClient } from "./utils/logchimp";
 import { migrate } from "./migrate";
 import { resolveConfirm, resolveSelect, resolveText } from "./prompt";
 import { createAstutoSource } from "./sources/astuto";
 import { normalizeBaseUrl } from "./utils/http";
+import { LogChimpClient } from "./utils/logchimp";
 import { CliError, type Source, type SourceName } from "./utils/types";
 
 const VERSION = "0.1.0";
