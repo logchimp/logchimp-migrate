@@ -1,48 +1,6 @@
+import type { components } from "@logchimp/api-ts-types";
 import { normalizeBaseUrl, requestJson } from "./http";
 import { CliError } from "./types";
-
-export interface IPost {
-  postId: string;
-  title: string;
-  slug: string;
-  slugId: string;
-  contentMarkdown: string | null;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-  boardId: string;
-  roadmap_id: string;
-}
-
-export interface IBoard {
-  boardId: string;
-  name: string;
-  url: string;
-  color: string;
-  createdAt: Date;
-}
-
-export interface IBoardDetail extends IBoard {
-  post_count: string;
-}
-
-export interface IBoardPrivate extends IBoardDetail {
-  display: boolean;
-  view_voters: boolean;
-}
-
-export interface IRoadmap {
-  id: string;
-  name: string;
-  url: string;
-  color: string;
-}
-
-export interface IRoadmapPrivate extends IRoadmap {
-  index: number;
-  display: boolean;
-  created_at: Date;
-}
 
 /**
  * Minimal LogChimp API client (<host>/api/v1, JWT bearer auth).
@@ -72,7 +30,7 @@ export class LogChimpClient {
   }
 
   async login(email: string, password: string): Promise<void> {
-    const res = await this.call<{ user?: { authToken?: string } }>(
+    const res = await this.call<components["schemas"]["LoginResponseBody"]>(
       "POST",
       "/auth/login",
       { email, password },
@@ -83,79 +41,75 @@ export class LogChimpClient {
     this.token = token;
   }
 
-  async listBoards(): Promise<IBoardPrivate[]> {
-    const res = await this.call<{
-      boards?: IBoardPrivate[];
-    }>("GET", "/boards");
+  async listBoards(): Promise<
+    components["schemas"]["GetBoardsResponseBody"]["boards"]
+  > {
+    const res = await this.call<components["schemas"]["GetBoardsResponseBody"]>(
+      "GET",
+      "/boards",
+    );
     return res.boards ?? [];
   }
 
-  async createBoard(name: string): Promise<IBoardPrivate> {
-    const res = await this.call<{
-      board?: IBoardPrivate;
-    }>("POST", "/boards", { name });
+  async createBoard(
+    name: string,
+  ): Promise<components["schemas"]["BoardPrivate"]> {
+    const res = await this.call<
+      components["schemas"]["CreateBoardResponseBody"]
+    >("POST", "/boards", { name });
     if (!res.board?.boardId)
       throw new CliError(`Could not create board "${name}".`);
     return res.board;
   }
 
-  async createPost(input: {
-    title: string;
-    contentMarkdown: string;
-    boardId?: string;
-    roadmapId?: string;
-  }): Promise<IPost> {
-    const res = await this.call<{ post?: IPost }>("POST", "/posts", input);
+  async createPost(
+    input: components["schemas"]["CreatePostRequestBody"],
+  ): Promise<components["schemas"]["CreatePostResponseBody"]["post"]> {
+    const res = await this.call<
+      components["schemas"]["CreatePostResponseBody"]
+    >("POST", "/posts", input);
     if (!res.post?.postId)
       throw new CliError(`Could not create post "${input.title}".`);
     return res.post;
   }
 
-  async updatePost(input: {
-    id: string;
-    title: string;
-    contentMarkdown: string | null;
-    slugId: string;
-    boardId?: string | null;
-    roadmapId?: string | null;
-    roadmap?: {
-      notifyVoters: boolean;
-    };
-  }): Promise<IPost> {
-    const res = await this.call<{ post?: IPost }>("PATCH", "/posts", input);
+  async updatePost(
+    input: components["schemas"]["UpdatePostEERequestBody"],
+  ): Promise<components["schemas"]["UpdatePostResponseBody"]["post"]> {
+    const res = await this.call<
+      components["schemas"]["UpdatePostResponseBody"]
+    >("PATCH", "/posts", input);
     if (!res.post?.postId)
       throw new CliError(`Could not update post "${input.title}".`);
     return res.post;
   }
 
-  async listRoadmaps(): Promise<IRoadmapPrivate[]> {
-    const res = await this.call<{
-      results: IRoadmapPrivate[];
-    }>("GET", "/roadmaps");
+  async listRoadmaps(): Promise<
+    components["schemas"]["GetFilterRoadmapsResponseBody"]["results"]
+  > {
+    const res = await this.call<
+      components["schemas"]["GetFilterRoadmapsResponseBody"]
+    >("GET", "/roadmaps");
     return res.results ?? [];
   }
 
-  async createRoadmap(input: { name: string }): Promise<IRoadmapPrivate> {
-    const res = await this.call<{
-      roadmap: IRoadmapPrivate;
-    }>("POST", "/roadmaps", input);
+  async createRoadmap(input: {
+    name: string;
+  }): Promise<components["schemas"]["CreateRoadmapResponseBody"]["roadmap"]> {
+    const res = await this.call<
+      components["schemas"]["CreateRoadmapResponseBody"]
+    >("POST", "/roadmaps", input);
     if (!res.roadmap?.id)
       throw new CliError(`Could not create roadmap "${input.name}".`);
     return res.roadmap;
   }
 
-  async updateRoadmap(input: {
-    id: string;
-    name: string;
-    url: string;
-    color: string;
-    display: boolean;
-  }) {
-    const res = await this.call<{ roadmap?: IRoadmapPrivate }>(
-      "PATCH",
-      "/roadmaps",
-      input,
-    );
+  async updateRoadmap(
+    input: components["schemas"]["UpdateRoadmapRequestBody"],
+  ) {
+    const res = await this.call<
+      components["schemas"]["UpdateRoadmapResponseBody"]
+    >("PATCH", "/roadmaps", input);
     if (!res.roadmap?.id)
       throw new CliError(`Could not update roadmap "${input.name}".`);
     return res.roadmap;

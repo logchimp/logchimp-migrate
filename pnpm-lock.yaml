@@ -15,6 +15,9 @@ importers:
       '@biomejs/biome':
         specifier: 2.5.15
         version: 2.5.15
+      '@logchimp/api-ts-types':
+        specifier: ^0.2.2
+        version: 0.2.2
       '@types/bun':
         specifier: latest
         version: 1.4.4
@@ -88,6 +91,9 @@ packages:
   '@clack/prompts@1.9.0':
     resolution: {integrity: sha512-tEj8X2No2A1c9NDnZECxiiJ8TP3vmFlN9tLlLeSaMqVW4tUmVG2R4qpv/eP4zymWxnymYLkLcIYVV0VcWj3RCQ==}
     engines: {node: '>= 20.12.0'}
+
+  '@logchimp/api-ts-types@0.2.2':
+    resolution: {integrity: sha512-wECUX1SYgbYGuhiIfONv3E176HljWoauuZvsDDcn6p+MGo6dV6F+figiW1PErLth5UQZ8hHSaqWPiGgeVcHvMg==}
 
   '@types/bun@1.4.4':
     resolution: {integrity: sha512-9wkRDXUXK124pEnAutE6n/l18j+i9GC5IAHK8TmX/2nlySETmky0OU6yL5U8pW1AoKh++AN9auDCr647BfurjQ==}
@@ -171,6 +177,8 @@ snapshots:
       fast-string-width: 3.0.2
       fast-wrap-ansi: 0.2.2
       sisteransi: 2.0.0
+
+  '@logchimp/api-ts-types@0.2.2': {}
 
   '@types/bun@1.4.4':
     dependencies:
