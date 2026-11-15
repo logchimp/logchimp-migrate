@@ -1,0 +1,30 @@
+name: "Biome tools"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  formatter:
+    name: Formatter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: biomejs/setup-biome@v2
+
+      - name: Formatter
+        run: biome format --max-diagnostics=none --colors force .
+
+  linter:
+    name: Linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: biomejs/setup-biome@v2
+
+      - name: Linter
+        run: biome check --max-diagnostics=none --colors force .
