@@ -11,13 +11,13 @@ importers:
       '@clack/prompts':
         specifier: ^1.8.1
         version: 1.9.0
+      '@logchimp/api-ts-types':
+        specifier: ^0.2.2
+        version: 0.2.2
     devDependencies:
       '@biomejs/biome':
         specifier: 2.5.15
         version: 2.5.15
-      '@logchimp/api-ts-types':
-        specifier: ^0.2.2
-        version: 0.2.2
       '@types/bun':
         specifier: latest
         version: 1.4.4
